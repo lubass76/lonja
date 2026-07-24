@@ -1,0 +1,12 @@
+{
+  "name": "lonja",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LONJA — mercado de productores de España por localidad. Demo construida sobre la arquitectura de búsqueda de Experience Prospector.",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

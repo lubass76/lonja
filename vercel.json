@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "outputDirectory": "public",
+  "functions": {
+    "api/search-productores.js": { "maxDuration": 30 },
+    "api/maps-key.js": { "maxDuration": 10 }
+  }
+}

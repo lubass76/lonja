@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LONJA — Compra donde nace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1712;
+    --bg-raised:#241E17;
+    --paper:#F3ECDD;
+    --ink:#241C14;
+    --cream:#EDE3CE;
+    --cream-dim:#B9AD94;
+    --pimenton:#B23B22;
+    --pimenton-light:#D9754F;
+    --gold:#C9973E;
+    --olive:#5B6B4A;
+    --line:rgba(237,227,206,0.14);
+    --line-paper:rgba(36,28,20,0.12);
+    --radius:2px;
+    --cat-aceite:#C9973E;
+    --cat-vino:#8C3A4A;
+    --cat-queso:#D9C48A;
+    --cat-miel:#D9A441;
+    --cat-jamon:#A63A24;
+    --cat-conservas:#5B6B4A;
+    --cat-pan:#C2A46B;
+    --cat-carne:#7A3131;
+    --cat-huerta:#5C7A4E;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'DM Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'DM Mono',monospace;}
+  .serif{font-family:'Fraunces',serif;}
+
+  /* ---------- BANNER TÉCNICO ---------- */
+  .tech-banner{
+    background:var(--bg-raised);
+    border-bottom:1px solid var(--line);
+    color:var(--cream-dim);
+    font-size:0.75rem;
+    padding:10px 24px;
+    text-align:center;
+    font-family:'DM Mono',monospace;
+    letter-spacing:0.02em;
+  }
+  .tech-banner strong{color:var(--gold);font-weight:500;}
+
+  /* ---------- HEADER ---------- */
+  header{
+    padding:28px 40px 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.4rem;
+    letter-spacing:0.04em;
+    color:var(--cream);
+  }
+  .brand span{color:var(--pimenton-light);}
+  .brand-tag{
+    font-size:0.7rem;
+    color:var(--cream-dim);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    font-family:'DM Mono',monospace;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:64px 40px 48px;
+    max-width:920px;
+  }
+  .hero h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:clamp(2.4rem,5vw,4.2rem);
+    line-height:1.05;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--pimenton-light);
+  }
+  .hero p{
+    font-size:1.05rem;
+    color:var(--cream-dim);
+    max-width:560px;
+    line-height:1.6;
+    margin:0 0 40px;
+  }
+
+  /* ---------- BUSCADOR ---------- */
+  .search-panel{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:28px 0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:28px;
+    align-items:flex-end;
+  }
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field label{
+    font-family:'DM Mono',monospace;
+    font-size:0.68rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  .field input, .field select{
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--cream);
+    font-family:'Fraunces',serif;
+    font-size:1.3rem;
+    padding:6px 2px 10px;
+    min-width:220px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  .field input::placeholder{color:var(--cream-dim);opacity:0.5;font-style:italic;}
+  .field input:focus, .field select:focus{border-color:var(--pimenton-light);}
+  .field select{font-family:'DM Mono',monospace;font-size:0.95rem;min-width:140px;}
+  .field select option{background:var(--bg-raised);color:var(--cream);}
+
+  .btn-buscar{
+    background:var(--pimenton);
+    color:var(--paper);
+    border:none;
+    padding:14px 30px;
+    font-family:'DM Mono',monospace;
+    font-size:0.8rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    cursor:pointer;
+    border-radius:var(--radius);
+    transition:background .2s ease, transform .15s ease;
+    height:fit-content;
+  }
+  .btn-buscar:hover{background:var(--pimenton-light);}
+  .btn-buscar:active{transform:scale(0.98);}
+  .btn-buscar:disabled{opacity:0.5;cursor:wait;}
+
+  /* ---------- CATEGORÍAS (chips) ---------- */
+  .categorias{
+    padding:24px 40px 8px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 16px 8px 10px;
+    font-size:0.82rem;
+    color:var(--cream-dim);
+    cursor:pointer;
+    user-select:none;
+    transition:all .15s ease;
+    background:transparent;
+  }
+  .chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .chip.active{
+    color:var(--ink);
+    background:var(--cream);
+    border-color:var(--cream);
+  }
+  .chip:hover{border-color:var(--cream-dim);}
+  .chip .count{
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem;
+    opacity:0.65;
+  }
+
+  /* ---------- CUERPO: MAPA + LISTA ---------- */
+  .cuerpo{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:0;
+    min-height:560px;
+    border-top:1px solid var(--line);
+  }
+  @media (max-width:920px){
+    .cuerpo{grid-template-columns:1fr;}
+  }
+  #map{
+    width:100%;
+    height:100%;
+    min-height:420px;
+    background:var(--bg-raised);
+  }
+  .lista-wrap{
+    border-left:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    max-height:720px;
+  }
+  @media (max-width:920px){
+    .lista-wrap{border-left:none;border-top:1px solid var(--line);max-height:none;}
+  }
+  .lista-header{
+    padding:18px 28px;
+    border-bottom:1px solid var(--line);
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    display:flex;
+    justify-content:space-between;
+  }
+  .lista{
+    overflow-y:auto;
+    flex:1;
+  }
+
+  /* ---------- TARJETA / TICKET ---------- */
+  .ticket{
+    display:flex;
+    gap:16px;
+    padding:20px 28px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    transition:background .15s ease;
+    position:relative;
+  }
+  .ticket:hover{background:var(--bg-raised);}
+  .ticket.destacado{background:var(--bg-raised);}
+  .seal{
+    flex-shrink:0;
+    width:52px;height:52px;
+    border-radius:50%;
+    border:1px dashed var(--gold);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    transform:rotate(-6deg);
+    font-family:'DM Mono',monospace;
+    color:var(--gold);
+  }
+  .seal .km{font-size:0.95rem;font-weight:500;line-height:1;}
+  .seal .kmlabel{font-size:0.55rem;letter-spacing:0.05em;margin-top:2px;}
+  .ticket-body{flex:1;min-width:0;}
+  .ticket-cat{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:0.78rem;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:4px;
+  }
+  .ticket-cat .dot{width:7px;height:7px;border-radius:50%;}
+  .ticket-nombre{
+    font-family:'DM Sans',sans-serif;
+    font-weight:700;
+    font-size:1.02rem;
+    margin:0 0 4px;
+    color:var(--cream);
+  }
+  .ticket-dir{
+    font-size:0.85rem;
+    color:var(--cream-dim);
+    margin:0 0 8px;
+    line-height:1.4;
+  }
+  .ticket-meta{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    color:var(--cream-dim);
+  }
+  .ticket-meta .rating{color:var(--gold);}
+  .ticket-meta a{color:var(--pimenton-light);text-decoration:none;}
+  .ticket-meta a:hover{text-decoration:underline;}
+
+  /* ---------- ESTADOS ---------- */
+  .estado{
+    padding:60px 28px;
+    text-align:center;
+    color:var(--cream-dim);
+  }
+  .estado h3{
+    font-family:'Fraunces',serif;
+    font-size:1.4rem;
+    color:var(--cream);
+    margin:0 0 10px;
+  }
+  .estado p{font-size:0.92rem;line-height:1.6;max-width:340px;margin:0 auto;}
+
+  footer{
+    padding:28px 40px 40px;
+    color:var(--cream-dim);
+    font-size:0.78rem;
+    border-top:1px solid var(--line);
+    font-family:'DM Mono',monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="tech-banner">
+  Demo funcional conectada a Google Places · requiere <strong>GOOGLE_PLACES_API_KEY</strong> en Vercel con Geocoding, Places y Maps JavaScript API habilitadas
+</div>
+
+<header>
+  <div>
+    <div class="brand">LONJA<span>.</span></div>
+    <div class="brand-tag">Mercado de productores de España</div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Compra donde <em>nace</em>.</h1>
+  <p>Escribe tu localidad y encuentra a los productores de aceite, vino, queso, miel y más que tienes cerca — con nombre, origen y distancia real. Sin intermediarios, sin lineal de supermercado.</p>
+
+  <form id="form-buscar" class="search-panel">
+    <div class="field" style="flex:1;">
+      <label for="localidad">Localidad</label>
+      <input type="text" id="localidad" placeholder="Ej. Montornès del Vallès" required>
+    </div>
+    <div class="field">
+      <label for="radio">Radio</label>
+      <select id="radio">
+        <option value="5000">5 km</option>
+        <option value="10000" selected>10 km</option>
+        <option value="20000">20 km</option>
+        <option value="40000">40 km</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-buscar" id="btn-buscar">Buscar productores</button>
+  </form>
+</section>
+
+<div class="categorias" id="categorias"></div>
+
+<div class="cuerpo">
+  <div id="map"></div>
+  <div class="lista-wrap">
+    <div class="lista-header">
+      <span id="lista-titulo">Resultados</span>
+      <span id="lista-total" class="mono">—</span>
+    </div>
+    <div class="lista" id="lista">
+      <div class="estado">
+        <h3>Aún no hay búsqueda</h3>
+        <p>Escribe una localidad arriba y pulsa «Buscar productores» para ver el mapa de esa zona.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  LONJA · demo de arquitectura construida sobre la infraestructura de búsqueda de Experience Prospector
+</footer>
+
+<script>
+const CATEGORIAS = [
+  { id:'aceite',    label:'Aceite',   color:'var(--cat-aceite)'   },
+  { id:'vino',      label:'Vino',     color:'var(--cat-vino)'     },
+  { id:'queso',     label:'Queso',    color:'var(--cat-queso)'    },
+  { id:'miel',      label:'Miel',     color:'var(--cat-miel)'     },
+  { id:'jamon',     label:'Jamón',    color:'var(--cat-jamon)'    },
+  { id:'conservas', label:'Conservas',color:'var(--cat-conservas)'},
+  { id:'pan',       label:'Pan',      color:'var(--cat-pan)'      },
+  { id:'carne',     label:'Carne',    color:'var(--cat-carne)'    },
+  { id:'huerta',    label:'Huerta',   color:'var(--cat-huerta)'   },
+];
+
+let map, markers = [], currentCenter = null, currentResultados = [];
+let categoriasActivas = new Set(CATEGORIAS.map(c => c.id));
+
+// ---------- CHIPS DE CATEGORÍA ----------
+function renderChips(conteos = {}){
+  const wrap = document.getElementById('categorias');
+  wrap.innerHTML = CATEGORIAS.map(c => `
+    <div class="chip ${categoriasActivas.has(c.id) ? 'active' : ''}" data-cat="${c.id}">
+      <span class="dot" style="background:${c.color}"></span>
+      ${c.label}
+      ${conteos[c.id] !== undefined ? `<span class="count">${conteos[c.id]}</span>` : ''}
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const cat = chip.dataset.cat;
+      if (categoriasActivas.has(cat)) categoriasActivas.delete(cat);
+      else categoriasActivas.add(cat);
+      chip.classList.toggle('active');
+      aplicarFiltro();
+    });
+  });
+}
+renderChips();
+
+// ---------- CARGA DE GOOGLE MAPS ----------
+async function cargarGoogleMaps(){
+  const r = await fetch('/api/maps-key');
+  const { key } = await r.json();
+  if (!key) throw new Error('No se recibió API key de /api/maps-key');
+  return new Promise((resolve, reject) => {
+    window.__initLonjaMap = () => resolve();
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=__initLonjaMap`;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+const MAP_STYLE = [
+  { elementType:'geometry', stylers:[{ color:'#241E17' }] },
+  { elementType:'labels.text.fill', stylers:[{ color:'#B9AD94' }] },
+  { elementType:'labels.text.stroke', stylers:[{ color:'#1B1712' }] },
+  { featureType:'road', elementType:'geometry', stylers:[{ color:'#33291D' }] },
+  { featureType:'water', elementType:'geometry', stylers:[{ color:'#14201C' }] },
+  { featureType:'poi', stylers:[{ visibility:'off' }] },
+  { featureType:'transit', stylers:[{ visibility:'off' }] },
+  { featureType:'administrative', elementType:'geometry.stroke', stylers:[{ color:'#3A3020' }] },
+];
+
+function initMap(center){
+  map = new google.maps.Map(document.getElementById('map'), {
+    center, zoom: 11,
+    styles: MAP_STYLE,
+    disableDefaultUI: true,
+    zoomControl: true,
+  });
+}
+
+function colorDeCategoria(id){
+  const c = CATEGORIAS.find(c => c.id === id);
+  return c ? getComputedStyle(document.documentElement).getPropertyValue(c.color.replace('var(','').replace(')','')) || '#C9973E' : '#C9973E';
+}
+
+function pintarMarcadores(resultados){
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+  resultados.forEach(p => {
+    const color = colorDeCategoria(p.categoria).trim() || '#C9973E';
+    const marker = new google.maps.Marker({
+      position:{ lat:p.lat, lng:p.lng },
+      map,
+      title:p.nombre,
+      icon:{
+        path: google.maps.SymbolPath.CIRCLE,
+        scale:7,
+        fillColor: color,
+        fillOpacity:1,
+        strokeColor:'#1B1712',
+        strokeWeight:2,
+      }
+    });
+    marker.__id = p.id;
+    markers.push(marker);
+  });
+}
+
+function centrarEn(p){
+  if (!map) return;
+  map.panTo({ lat:p.lat, lng:p.lng });
+  map.setZoom(14);
+  const marker = markers.find(m => m.__id === p.id);
+  if (marker){
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(() => marker.setAnimation(null), 1400);
+  }
+}
+
+// ---------- DISTANCIA (Haversine) ----------
+function distanciaKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI/180;
+  const dLng = (lng2 - lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ---------- RENDER DE LA LISTA ----------
+function renderLista(resultados){
+  const lista = document.getElementById('lista');
+  document.getElementById('lista-total').textContent = `${resultados.length} resultado${resultados.length===1?'':'s'}`;
+
+  if (!resultados.length){
+    lista.innerHTML = `
+      <div class="estado">
+        <h3>Nada por aquí todavía</h3>
+        <p>No hemos encontrado productores en estas categorías dentro del radio elegido. Prueba a ampliarlo o a activar más categorías.</p>
+      </div>`;
+    return;
+  }
+
+  lista.innerHTML = resultados.map(p => {
+    const cat = CATEGORIAS.find(c => c.id === p.categoria);
+    const km = distanciaKm(currentCenter.lat, currentCenter.lng, p.lat, p.lng);
+    return `
+    <div class="ticket" data-id="${p.id}">
+      <div class="seal"><span class="km">${km.toFixed(1)}</span><span class="kmlabel">KM</span></div>
+      <div class="ticket-body">
+        <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#C9973E'}"></span>${cat?.label || p.categoriaLabel}</div>
+        <p class="ticket-nombre">${p.nombre}</p>
+        <p class="ticket-dir">${p.direccion}</p>
+        <div class="ticket-meta">
+          ${p.rating ? `<span class="rating">★ ${p.rating.toFixed(1)}</span>` : `<span>Sin valoraciones</span>`}
+          ${p.totalRatings ? `<span>${p.totalRatings} reseñas</span>` : ''}
+          <a href="https://www.google.com/maps/place/?q=place_id:${p.id}" target="_blank" rel="noopener">Ver ficha ↗</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  lista.querySelectorAll('.ticket').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = resultados.find(r => r.id === el.dataset.id);
+      if (p) centrarEn(p);
+    });
+  });
+}
+
+function aplicarFiltro(){
+  const filtrados = currentResultados.filter(p => categoriasActivas.has(p.categoria));
+  pintarMarcadores(filtrados);
+  renderLista(filtrados.sort((a,b) => {
+    const da = distanciaKm(currentCenter.lat,currentCenter.lng,a.lat,a.lng);
+    const db = distanciaKm(currentCenter.lat,currentCenter.lng,b.lat,b.lng);
+    return da - db;
+  }));
+}
+
+// ---------- BÚSQUEDA ----------
+let mapsListo = false;
+
+document.getElementById('form-buscar').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const localidad = document.getElementById('localidad').value.trim();
+  const radius = document.getElementById('radio').value;
+  if (!localidad) return;
+
+  const btn = document.getElementById('btn-buscar');
+  btn.disabled = true;
+  btn.textContent = 'Buscando…';
+  document.getElementById('lista').innerHTML = `<div class="estado"><h3>Recorriendo la lonja…</h3><p>Consultando productores de aceite, vino, queso, miel, jamón, conservas, pan, carne y huerta cerca de ${localidad}.</p></div>`;
+
+  try {
+    if (!mapsListo){
+      await cargarGoogleMaps();
+      mapsListo = true;
+    }
+
+    const r = await fetch('/api/search-productores', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ location: localidad, radius: Number(radius) })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+
+    currentCenter = data.center;
+    currentResultados = data.productores;
+    categoriasActivas = new Set(CATEGORIAS.map(c => c.id));
+
+    if (!map) initMap(currentCenter);
+    else { map.setCenter(currentCenter); map.setZoom(11); }
+
+    const conteos = {};
+    CATEGORIAS.forEach(c => conteos[c.id] = currentResultados.filter(p => p.categoria === c.id).length);
+    renderChips(conteos);
+
+    document.getElementById('lista-titulo').textContent = `Cerca de ${localidad}`;
+    aplicarFiltro();
+
+  } catch (err) {
+    document.getElementById('lista').innerHTML = `<div class="estado"><h3>No hemos podido buscar</h3><p>${err.message}</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Buscar productores';
+  }
+});
+</script>
+
+</body>
+</html>
