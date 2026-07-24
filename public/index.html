@@ -534,38 +534,62 @@ function aplicarFiltro(){
 // cuáles son productores directos o comercios especializados en producto
 // español (descarta cadenas, franquicias y cualquier cosa sin señal clara) y
 // reasigna la categoría real de cada uno.
+//
+// Cada lote es independiente: si uno falla (timeout, error puntual de OpenAI),
+// se reintenta una vez y, si vuelve a fallar, SOLO se descartan los candidatos
+// de ese lote — nunca se tira la búsqueda entera por un fallo aislado.
+async function verificarLote(lote){
+  const candidatos = lote.map(p => ({
+    id: p.id,
+    nombre: p.nombre,
+    direccion: p.direccion,
+    categoriasGoogle: p.categorias,
+  }));
+  const r = await fetch('/api/enrich-productores', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ candidatos })
+  });
+  const data = await r.json();
+  if (data.error) throw new Error(data.error);
+  return data.resultados;
+}
+
 async function verificarProductores(bruto){
-  const TAMANO_LOTE = 25;
+  const TAMANO_LOTE = 15;
   const lotes = [];
   for (let i = 0; i < bruto.length; i += TAMANO_LOTE) lotes.push(bruto.slice(i, i + TAMANO_LOTE));
 
+  let lotesFallidos = 0;
+
   const respuestas = await Promise.all(lotes.map(async lote => {
-    const candidatos = lote.map(p => ({
-      id: p.id,
-      nombre: p.nombre,
-      direccion: p.direccion,
-      categoriasGoogle: p.categorias,
-    }));
-    const r = await fetch('/api/enrich-productores', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ candidatos })
-    });
-    const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    return data.resultados;
+    try {
+      return await verificarLote(lote);
+    } catch (e1) {
+      try {
+        return await verificarLote(lote); // un reintento antes de rendirse
+      } catch (e2) {
+        console.warn('Lote de verificación descartado tras reintento:', e2.message);
+        lotesFallidos++;
+        return []; // este lote no aporta clasificación — sus candidatos se excluirán
+      }
+    }
   }));
 
   const clasificacion = new Map();
   respuestas.flat().forEach(c => clasificacion.set(c.id, c));
 
-  return bruto
+  const resultado = bruto
     .filter(p => clasificacion.get(p.id)?.incluir)
     .map(p => {
       const clas = clasificacion.get(p.id);
       const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
       return { ...p, categoria: cat.id, categoriaLabel: cat.label };
     });
+
+  resultado.__lotesFallidos = lotesFallidos;
+  resultado.__totalLotes = lotes.length;
+  return resultado;
 }
 
 // ---------- BÚSQUEDA ----------
@@ -604,6 +628,9 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
     let avisoFallback = '';
     try {
       currentResultados = await verificarProductores(bruto);
+      if (currentResultados.__lotesFallidos > 0){
+        avisoFallback = ` — ${currentResultados.__lotesFallidos}/${currentResultados.__totalLotes} lotes no se pudieron verificar y se excluyeron`;
+      }
     } catch (errVerif) {
       console.warn('No se pudo verificar el origen (revisa OPENAI_API_KEY en Vercel):', errVerif.message);
       currentResultados = bruto;

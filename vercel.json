@@ -3,7 +3,7 @@
   "outputDirectory": "public",
   "functions": {
     "api/search-productores.js": { "maxDuration": 30 },
-    "api/enrich-productores.js": { "maxDuration": 45 },
+    "api/enrich-productores.js": { "maxDuration": 60 },
     "api/maps-key.js": { "maxDuration": 10 }
   }
 }
