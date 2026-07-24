@@ -44,19 +44,6 @@
   .mono{font-family:'DM Mono',monospace;}
   .serif{font-family:'Fraunces',serif;}
 
-  /* ---------- BANNER TÉCNICO ---------- */
-  .tech-banner{
-    background:var(--bg-raised);
-    border-bottom:1px solid var(--line);
-    color:var(--cream-dim);
-    font-size:0.75rem;
-    padding:10px 24px;
-    text-align:center;
-    font-family:'DM Mono',monospace;
-    letter-spacing:0.02em;
-  }
-  .tech-banner strong{color:var(--gold);font-weight:500;}
-
   /* ---------- HEADER ---------- */
   header{
     padding:28px 40px 0;
@@ -320,10 +307,6 @@
 </head>
 <body>
 
-<div class="tech-banner">
-  Demo funcional conectada a Google Places · requiere <strong>GOOGLE_PLACES_API_KEY</strong> en Vercel con Geocoding, Places y Maps JavaScript API habilitadas
-</div>
-
 <header>
   <div>
     <div class="brand">LONJA<span>.</span></div>
@@ -338,7 +321,7 @@
   <form id="form-buscar" class="search-panel">
     <div class="field" style="flex:1;">
       <label for="localidad">Localidad</label>
-      <input type="text" id="localidad" placeholder="Ej. Montornès del Vallès" required>
+      <input type="text" id="localidad" placeholder="Ej. Madrid" required>
     </div>
     <div class="field">
       <label for="radio">Radio</label>
@@ -546,6 +529,45 @@ function aplicarFiltro(){
   }));
 }
 
+// ---------- VERIFICACIÓN DE ORIGEN ESPAÑOL ----------
+// Envía los resultados en lotes a /api/enrich-productores, que decide con IA
+// cuáles son productores directos o comercios especializados en producto
+// español (descarta cadenas, franquicias y cualquier cosa sin señal clara) y
+// reasigna la categoría real de cada uno.
+async function verificarProductores(bruto){
+  const TAMANO_LOTE = 25;
+  const lotes = [];
+  for (let i = 0; i < bruto.length; i += TAMANO_LOTE) lotes.push(bruto.slice(i, i + TAMANO_LOTE));
+
+  const respuestas = await Promise.all(lotes.map(async lote => {
+    const candidatos = lote.map(p => ({
+      id: p.id,
+      nombre: p.nombre,
+      direccion: p.direccion,
+      categoriasGoogle: p.categorias,
+    }));
+    const r = await fetch('/api/enrich-productores', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ candidatos })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    return data.resultados;
+  }));
+
+  const clasificacion = new Map();
+  respuestas.flat().forEach(c => clasificacion.set(c.id, c));
+
+  return bruto
+    .filter(p => clasificacion.get(p.id)?.incluir)
+    .map(p => {
+      const clas = clasificacion.get(p.id);
+      const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
+      return { ...p, categoria: cat.id, categoriaLabel: cat.label };
+    });
+}
+
 // ---------- BÚSQUEDA ----------
 let mapsListo = false;
 
@@ -575,7 +597,19 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
     if (data.error) throw new Error(data.error);
 
     currentCenter = data.center;
-    currentResultados = data.productores;
+    const bruto = data.productores;
+
+    document.getElementById('lista').innerHTML = `<div class="estado"><h3>Verificando origen español…</h3><p>Comprobando cuáles de los ${bruto.length} resultados son productores directos o comercios especializados en producto español, y descartando el resto.</p></div>`;
+
+    let avisoFallback = '';
+    try {
+      currentResultados = await verificarProductores(bruto);
+    } catch (errVerif) {
+      console.warn('No se pudo verificar el origen (revisa OPENAI_API_KEY en Vercel):', errVerif.message);
+      currentResultados = bruto;
+      avisoFallback = ' — sin verificar origen';
+    }
+
     categoriasActivas = new Set(CATEGORIAS.map(c => c.id));
 
     if (!map) initMap(currentCenter);
@@ -585,7 +619,7 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
     CATEGORIAS.forEach(c => conteos[c.id] = currentResultados.filter(p => p.categoria === c.id).length);
     renderChips(conteos);
 
-    document.getElementById('lista-titulo').textContent = `Cerca de ${localidad}`;
+    document.getElementById('lista-titulo').textContent = `Cerca de ${localidad}${avisoFallback}`;
     aplicarFiltro();
 
   } catch (err) {
