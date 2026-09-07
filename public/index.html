@@ -149,7 +149,18 @@
   }
   .btn-buscar:hover{background:var(--pimenton-light);}
   .btn-buscar:active{transform:scale(0.98);}
-  .btn-buscar:disabled{opacity:0.5;cursor:wait;}
+  .btn-buscar:disabled{opacity:0.75;cursor:wait;}
+  .btn-buscar{display:inline-flex;align-items:center;justify-content:center;gap:9px;}
+  .spinner{
+    display:inline-block;
+    width:13px;height:13px;
+    border:2px solid rgba(243,236,221,0.35);
+    border-top-color:var(--paper);
+    border-radius:50%;
+    animation:girar 0.7s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes girar{ to{ transform:rotate(360deg); } }
 
   /* ---------- CATEGORÍAS (chips) ---------- */
   .categorias{
@@ -347,7 +358,7 @@
 <div class="cuerpo">
   <div id="map"></div>
   <div class="lista-wrap">
-    <div class="lista-header">
+    <div class="lista-header" id="lista-header">
       <span id="lista-titulo">Resultados</span>
       <span id="lista-total" class="mono">—</span>
     </div>
@@ -544,7 +555,7 @@ function aplicarFiltro(){
 // Cada lote es independiente: si uno falla (timeout, error puntual de OpenAI),
 // se reintenta una vez y, si vuelve a fallar, SOLO se descartan los candidatos
 // de ese lote — nunca se tira la búsqueda entera por un fallo aislado.
-async function verificarLote(lote){
+async function verificarLote(lote, intento = 1){
   const candidatos = lote.map(p => ({
     id: p.id,
     nombre: p.nombre,
@@ -557,9 +568,18 @@ async function verificarLote(lote){
     body: JSON.stringify({ candidatos })
   });
   const data = await r.json();
-  if (data.error) throw new Error(data.error);
+  if (data.error) throw new Error(`HTTP ${r.status}: ${data.error}`);
   return data.resultados;
 }
+
+const esperar = (ms) => new Promise(res => setTimeout(res, ms));
+
+// Máximo de lotes en vuelo a la vez. Antes se lanzaban todos en paralelo
+// (Promise.all sin límite) — con localidades grandes eso son 10-15 peticiones
+// simultáneas a OpenAI, suficiente para chocar con el límite de peticiones
+// por minuto de la cuenta y que fallen TODAS a la vez (el patrón "12/12").
+// Procesando de 3 en 3 se evita ese pico.
+const CONCURRENCIA_MAXIMA = 3;
 
 async function verificarProductores(bruto){
   const TAMANO_LOTE = 15;
@@ -567,20 +587,29 @@ async function verificarProductores(bruto){
   for (let i = 0; i < bruto.length; i += TAMANO_LOTE) lotes.push(bruto.slice(i, i + TAMANO_LOTE));
 
   let lotesFallidos = 0;
+  let ultimoError = '';
+  const respuestas = new Array(lotes.length);
 
-  const respuestas = await Promise.all(lotes.map(async lote => {
-    try {
-      return await verificarLote(lote);
-    } catch (e1) {
+  let cursor = 0;
+  async function trabajador(){
+    while (cursor < lotes.length){
+      const i = cursor++;
       try {
-        return await verificarLote(lote); // un reintento antes de rendirse
-      } catch (e2) {
-        console.warn('Lote de verificación descartado tras reintento:', e2.message);
-        lotesFallidos++;
-        return []; // este lote no aporta clasificación — sus candidatos se excluirán
+        respuestas[i] = await verificarLote(lotes[i]);
+      } catch (e1) {
+        await esperar(1200); // da margen a que se libere el rate limit antes de reintentar
+        try {
+          respuestas[i] = await verificarLote(lotes[i]);
+        } catch (e2) {
+          console.warn('Lote de verificación descartado tras reintento:', e2.message);
+          ultimoError = e2.message;
+          lotesFallidos++;
+          respuestas[i] = [];
+        }
       }
     }
-  }));
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCIA_MAXIMA, lotes.length) }, trabajador));
 
   const clasificacion = new Map();
   respuestas.flat().forEach(c => clasificacion.set(c.id, c));
@@ -592,6 +621,8 @@ async function verificarProductores(bruto){
       const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
       return { ...p, categoria: cat.id, categoriaLabel: cat.label };
     });
+
+  resultado.__ultimoError = ultimoError;
 
   resultado.__lotesFallidos = lotesFallidos;
   resultado.__totalLotes = lotes.length;
@@ -609,8 +640,26 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
 
   const btn = document.getElementById('btn-buscar');
   btn.disabled = true;
-  btn.textContent = 'Buscando…';
+  btn.innerHTML = '<span class="spinner"></span> Buscando…';
   document.getElementById('lista').innerHTML = `<div class="estado"><h3>Recorriendo la lonja…</h3><p>Consultando productores de aceite, vino, queso, miel, jamón, conservas, pan, carne y huerta cerca de ${localidad}.</p></div>`;
+
+  // En pantallas estrechas (móvil), la cabecera y el hero ocupan toda la
+  // pantalla — sin este scroll, el usuario no ve ningún cambio tras pulsar
+  // "Buscar" a menos que baje él mismo. En escritorio no hace falta, ya se
+  // ve todo a la vez.
+  if (window.innerWidth <= 920){
+    document.getElementById('categorias').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // Segundo scroll, cuando la búsqueda termina (con éxito o con error): en
+  // móvil el mapa ocupa toda la pantalla antes que la lista, así que el
+  // primer scroll (arriba) no basta para que el usuario vea que ya hay
+  // resultados — hay que bajar hasta el propio encabezado de la lista.
+  function desplazarAResultados(){
+    if (window.innerWidth <= 920){
+      document.getElementById('lista-header').scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }
 
   try {
     if (!mapsListo){
@@ -635,7 +684,10 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
     try {
       currentResultados = await verificarProductores(bruto);
       if (currentResultados.__lotesFallidos > 0){
-        avisoFallback = ` — ${currentResultados.__lotesFallidos}/${currentResultados.__totalLotes} lotes no se pudieron verificar y se excluyeron`;
+        const todosFallaron = currentResultados.__lotesFallidos === currentResultados.__totalLotes;
+        avisoFallback = todosFallaron
+          ? ` — verificación no disponible ahora mismo (${currentResultados.__ultimoError || 'error desconocido'})`
+          : ` — ${currentResultados.__lotesFallidos}/${currentResultados.__totalLotes} lotes no se pudieron verificar y se excluyeron`;
       }
     } catch (errVerif) {
       console.warn('No se pudo verificar el origen (revisa OPENAI_API_KEY en Vercel):', errVerif.message);
@@ -654,9 +706,11 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
 
     document.getElementById('lista-titulo').textContent = `Cerca de ${localidad}${avisoFallback}`;
     aplicarFiltro();
+    desplazarAResultados();
 
   } catch (err) {
     document.getElementById('lista').innerHTML = `<div class="estado"><h3>No hemos podido buscar</h3><p>${err.message}</p></div>`;
+    desplazarAResultados();
   } finally {
     btn.disabled = false;
     btn.textContent = 'Buscar productores';
