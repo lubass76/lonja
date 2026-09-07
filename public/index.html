@@ -643,18 +643,12 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
   btn.innerHTML = '<span class="spinner"></span> Buscando…';
   document.getElementById('lista').innerHTML = `<div class="estado"><h3>Recorriendo la lonja…</h3><p>Consultando productores de aceite, vino, queso, miel, jamón, conservas, pan, carne y huerta cerca de ${localidad}.</p></div>`;
 
-  // En pantallas estrechas (móvil), la cabecera y el hero ocupan toda la
-  // pantalla — sin este scroll, el usuario no ve ningún cambio tras pulsar
-  // "Buscar" a menos que baje él mismo. En escritorio no hace falta, ya se
-  // ve todo a la vez.
-  if (window.innerWidth <= 920){
-    document.getElementById('categorias').scrollIntoView({ behavior:'smooth', block:'start' });
-  }
-
-  // Segundo scroll, cuando la búsqueda termina (con éxito o con error): en
-  // móvil el mapa ocupa toda la pantalla antes que la lista, así que el
-  // primer scroll (arriba) no basta para que el usuario vea que ya hay
-  // resultados — hay que bajar hasta el propio encabezado de la lista.
+  // En móvil, el scroll a resultados se hace SOLO al terminar (éxito o
+  // error) — no al empezar, porque mover la pantalla justo al pulsar el
+  // botón se llevaba el spinner fuera de vista antes de que diera tiempo a
+  // verlo girar. Así el usuario ve el botón "Buscando…" primero, y luego la
+  // página baja sola hasta el encabezado de la lista cuando ya hay algo que
+  // mostrar.
   function desplazarAResultados(){
     if (window.innerWidth <= 920){
       document.getElementById('lista-header').scrollIntoView({ behavior:'smooth', block:'start' });
