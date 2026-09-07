@@ -574,13 +574,6 @@ async function verificarLote(lote, intento = 1){
 
 const esperar = (ms) => new Promise(res => setTimeout(res, ms));
 
-// Máximo de lotes en vuelo a la vez. Antes se lanzaban todos en paralelo
-// (Promise.all sin límite) — con localidades grandes eso son 10-15 peticiones
-// simultáneas a OpenAI, suficiente para chocar con el límite de peticiones
-// por minuto de la cuenta y que fallen TODAS a la vez (el patrón "12/12").
-// Procesando de 3 en 3 se evita ese pico.
-const CONCURRENCIA_MAXIMA = 3;
-
 async function verificarProductores(bruto){
   const TAMANO_LOTE = 15;
   const lotes = [];
@@ -588,28 +581,27 @@ async function verificarProductores(bruto){
 
   let lotesFallidos = 0;
   let ultimoError = '';
-  const respuestas = new Array(lotes.length);
 
-  let cursor = 0;
-  async function trabajador(){
-    while (cursor < lotes.length){
-      const i = cursor++;
+  // Todos los lotes se lanzan a la vez (sin límite de concurrencia) para
+  // máxima velocidad. Cada uno sigue teniendo su propio reintento aislado:
+  // si uno falla, se reintenta una vez y, si vuelve a fallar, solo se
+  // descartan sus candidatos — nunca se tira la búsqueda entera por un
+  // fallo puntual.
+  const respuestas = await Promise.all(lotes.map(async (lote) => {
+    try {
+      return await verificarLote(lote);
+    } catch (e1) {
+      await esperar(1200); // da margen a que se libere el rate limit antes de reintentar
       try {
-        respuestas[i] = await verificarLote(lotes[i]);
-      } catch (e1) {
-        await esperar(1200); // da margen a que se libere el rate limit antes de reintentar
-        try {
-          respuestas[i] = await verificarLote(lotes[i]);
-        } catch (e2) {
-          console.warn('Lote de verificación descartado tras reintento:', e2.message);
-          ultimoError = e2.message;
-          lotesFallidos++;
-          respuestas[i] = [];
-        }
+        return await verificarLote(lote);
+      } catch (e2) {
+        console.warn('Lote de verificación descartado tras reintento:', e2.message);
+        ultimoError = e2.message;
+        lotesFallidos++;
+        return [];
       }
     }
-  }
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCIA_MAXIMA, lotes.length) }, trabajador));
+  }));
 
   const clasificacion = new Map();
   respuestas.flat().forEach(c => clasificacion.set(c.id, c));
