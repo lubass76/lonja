@@ -9,28 +9,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#1B1712;
-    --bg-raised:#241E17;
+    --bg:#FAF6EC;
+    --bg-raised:#EFE4C9;
     --paper:#F3ECDD;
-    --ink:#241C14;
-    --cream:#EDE3CE;
-    --cream-dim:#B9AD94;
+    --ink:#FAF6EC;
+    --cream:#241C14;
+    --cream-dim:#6B5D48;
     --pimenton:#B23B22;
-    --pimenton-light:#D9754F;
-    --gold:#C9973E;
-    --olive:#5B6B4A;
-    --line:rgba(237,227,206,0.14);
+    --pimenton-light:#A6371F;
+    --gold:#9C6F1F;
+    --olive:#4A5A3C;
+    --line:rgba(36,28,20,0.14);
     --line-paper:rgba(36,28,20,0.12);
     --radius:2px;
-    --cat-aceite:#C9973E;
+    --cat-aceite:#B37F1E;
     --cat-vino:#8C3A4A;
-    --cat-queso:#D9C48A;
-    --cat-miel:#D9A441;
+    --cat-queso:#B79A4E;
+    --cat-miel:#B5811C;
     --cat-jamon:#A63A24;
-    --cat-conservas:#5B6B4A;
-    --cat-pan:#C2A46B;
+    --cat-conservas:#4A5A3C;
+    --cat-pan:#95753E;
     --cat-carne:#7A3131;
-    --cat-huerta:#5C7A4E;
+    --cat-huerta:#4A6B3C;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -428,14 +428,14 @@ async function cargarGoogleMaps(){
 }
 
 const MAP_STYLE = [
-  { elementType:'geometry', stylers:[{ color:'#241E17' }] },
-  { elementType:'labels.text.fill', stylers:[{ color:'#B9AD94' }] },
-  { elementType:'labels.text.stroke', stylers:[{ color:'#1B1712' }] },
-  { featureType:'road', elementType:'geometry', stylers:[{ color:'#33291D' }] },
-  { featureType:'water', elementType:'geometry', stylers:[{ color:'#14201C' }] },
+  { elementType:'geometry', stylers:[{ color:'#F3ECDD' }] },
+  { elementType:'labels.text.fill', stylers:[{ color:'#6B5D48' }] },
+  { elementType:'labels.text.stroke', stylers:[{ color:'#FAF6EC' }] },
+  { featureType:'road', elementType:'geometry', stylers:[{ color:'#E3D6B0' }] },
+  { featureType:'water', elementType:'geometry', stylers:[{ color:'#C9DBD3' }] },
   { featureType:'poi', stylers:[{ visibility:'off' }] },
   { featureType:'transit', stylers:[{ visibility:'off' }] },
-  { featureType:'administrative', elementType:'geometry.stroke', stylers:[{ color:'#3A3020' }] },
+  { featureType:'administrative', elementType:'geometry.stroke', stylers:[{ color:'#D6C596' }] },
 ];
 
 function initMap(center){
@@ -449,14 +449,14 @@ function initMap(center){
 
 function colorDeCategoria(id){
   const c = CATEGORIAS.find(c => c.id === id);
-  return c ? getComputedStyle(document.documentElement).getPropertyValue(c.color.replace('var(','').replace(')','')) || '#C9973E' : '#C9973E';
+  return c ? getComputedStyle(document.documentElement).getPropertyValue(c.color.replace('var(','').replace(')','')) || '#9C6F1F' : '#9C6F1F';
 }
 
 function pintarMarcadores(resultados){
   markers.forEach(m => m.setMap(null));
   markers = [];
   resultados.forEach(p => {
-    const color = colorDeCategoria(p.categoria).trim() || '#C9973E';
+    const color = colorDeCategoria(p.categoria).trim() || '#9C6F1F';
     const marker = new google.maps.Marker({
       position:{ lat:p.lat, lng:p.lng },
       map,
@@ -466,7 +466,7 @@ function pintarMarcadores(resultados){
         scale:7,
         fillColor: color,
         fillOpacity:1,
-        strokeColor:'#1B1712',
+        strokeColor:'#3A2E1F',
         strokeWeight:2,
       }
     });
@@ -516,7 +516,7 @@ function renderLista(resultados){
     <div class="ticket" data-id="${p.id}">
       <div class="seal"><span class="km">${km.toFixed(1)}</span><span class="kmlabel">KM</span></div>
       <div class="ticket-body">
-        <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#C9973E'}"></span>${cat?.label || p.categoriaLabel}</div>
+        <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#9C6F1F'}"></span>${cat?.label || p.categoriaLabel}</div>
         <p class="ticket-nombre">${p.nombre}</p>
         <p class="ticket-dir">${p.direccion}</p>
         <div class="ticket-meta">
