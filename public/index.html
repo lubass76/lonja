@@ -196,6 +196,22 @@
     opacity:0.65;
   }
 
+  .toggle-venta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 40px 20px;
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    color:var(--cream-dim);
+    cursor:pointer;
+    user-select:none;
+    max-width:1440px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .toggle-venta input{accent-color:var(--pimenton);width:15px;height:15px;cursor:pointer;}
+
   /* ---------- CUERPO: MAPA + LISTA ---------- */
   .cuerpo{
     display:grid;
@@ -368,6 +384,11 @@
 
 <div class="categorias" id="categorias"></div>
 
+<label class="toggle-venta">
+  <input type="checkbox" id="toggle-venta">
+  <span>Mostrar también productores sin venta directa confirmada</span>
+</label>
+
 <div class="cuerpo">
   <div id="map"></div>
   <div class="lista-wrap">
@@ -517,7 +538,7 @@ function renderLista(resultados){
     lista.innerHTML = `
       <div class="estado">
         <h3>Nada por aquí todavía</h3>
-        <p>No hemos encontrado productores en estas categorías dentro del radio elegido. Prueba a ampliarlo o a activar más categorías.</p>
+        <p>No hemos encontrado productores con venta directa confirmada en estas categorías dentro del radio elegido. Prueba a ampliarlo, activar más categorías, o marcar «mostrar también productores sin venta directa confirmada» arriba.</p>
       </div>`;
     return;
   }
@@ -555,7 +576,10 @@ function renderLista(resultados){
 }
 
 function aplicarFiltro(){
-  const filtrados = currentResultados.filter(p => categoriasActivas.has(p.categoria));
+  const mostrarTodos = document.getElementById('toggle-venta').checked;
+  const filtrados = currentResultados.filter(p =>
+    categoriasActivas.has(p.categoria) && (mostrarTodos || p.ventaPublico === 'si')
+  );
   pintarMarcadores(filtrados);
   renderLista(filtrados.sort((a,b) => {
     const da = distanciaKm(currentCenter.lat,currentCenter.lng,a.lat,a.lng);
@@ -563,6 +587,9 @@ function aplicarFiltro(){
     return da - db;
   }));
 }
+document.getElementById('toggle-venta').addEventListener('change', () => {
+  if (currentResultados.length) aplicarFiltro();
+});
 
 // ---------- VERIFICACIÓN DE ORIGEN ESPAÑOL ----------
 // Envía los resultados en lotes a /api/enrich-productores, que decide con IA
