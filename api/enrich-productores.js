@@ -40,10 +40,15 @@ Solo tienes el nombre, la dirección, y en qué categorías de búsqueda de Goog
 
 Para cada candidato que SÍ incluyas, asigna una única categoría real de esta lista cerrada: ${CATEGORIAS_VALIDAS.join(', ')}. Elige la más específica a su actividad principal — ignora las categorías de Google que fueron solo coincidencias de la búsqueda si no encajan con el nombre real del negocio.
 
+Además, para cada candidato que incluyas, estima si vende directamente a particulares ("ventaPublico"). Un comercio (tienda, charcutería, panadería, quesería) casi siempre vende al público — márcalo "si". Un productor (bodega, almazara, apicultor, huerta, cooperativa) puede vender solo a mayoristas/distribuidores sin atender a particulares, o puede tener venta directa/visitas — con solo el nombre y la dirección no lo puedes saber con certeza en la mayoría de los casos. Usa:
+- "si": el tipo de negocio o el nombre indica claramente venta al público (tiendas, charcuterías, obradores con despacho de pan, bodegas que incluyen "tienda" o "venta directa" en el nombre, mercados).
+- "no": el nombre indica claramente actividad mayorista o industrial sin trato al público (ej. "Distribuciones X", "Mayorista de...", "Almacén de...", cooperativas agrícolas puramente de acopio).
+- "incierto": no hay señal suficiente para decidir — este será el valor más frecuente para productores (bodegas, almazaras, apicultores, huertas) donde el nombre no lo aclara.
+
 Devuelve ÚNICAMENTE JSON válido sin markdown, con un elemento por cada candidato recibido, en el mismo orden:
 {
   "resultados": [
-    { "id": "el id exacto recibido", "incluir": true, "categoria": "una de las 9 categorías si incluir es true, si no null", "motivo": "una frase breve" }
+    { "id": "el id exacto recibido", "incluir": true, "categoria": "una de las 9 categorías si incluir es true, si no null", "ventaPublico": "si | no | incierto, solo si incluir es true, si no null", "motivo": "una frase breve" }
   ]
 }`;
 
@@ -95,11 +100,13 @@ Devuelve ÚNICAMENTE JSON válido sin markdown, con un elemento por cada candida
       else throw new Error('La respuesta no fue JSON válido.');
     }
 
-    // Sanea: fuerza que la categoría devuelta sea una de las válidas.
+    // Sanea: fuerza que la categoría y la venta al público devueltas sean valores válidos.
+    const VENTA_PUBLICO_VALIDA = ['si', 'no', 'incierto'];
     const resultados = (parsed.resultados || []).map(r => ({
       id: r.id,
       incluir: !!r.incluir,
       categoria: r.incluir && CATEGORIAS_VALIDAS.includes(r.categoria) ? r.categoria : null,
+      ventaPublico: r.incluir && VENTA_PUBLICO_VALIDA.includes(r.ventaPublico) ? r.ventaPublico : (r.incluir ? 'incierto' : null),
       motivo: r.motivo || '',
     }));
 

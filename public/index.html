@@ -274,6 +274,19 @@
     margin-bottom:4px;
   }
   .ticket-cat .dot{width:7px;height:7px;border-radius:50%;}
+  .venta-tag{
+    display:inline-block;
+    font-family:'DM Mono',monospace;
+    font-style:normal;
+    font-size:0.65rem;
+    letter-spacing:0.02em;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-left:2px;
+  }
+  .venta-si{background:rgba(74,107,60,0.16);color:var(--olive);}
+  .venta-no{background:rgba(156,111,31,0.16);color:var(--gold);}
+  .venta-incierto{background:var(--line);color:var(--cream-dim);}
   .ticket-nombre{
     font-family:'DM Sans',sans-serif;
     font-weight:700;
@@ -512,11 +525,16 @@ function renderLista(resultados){
   lista.innerHTML = resultados.map(p => {
     const cat = CATEGORIAS.find(c => c.id === p.categoria);
     const km = distanciaKm(currentCenter.lat, currentCenter.lng, p.lat, p.lng);
+    const etiquetaVenta = {
+      si: '<span class="venta-tag venta-si">Venta directa al público</span>',
+      no: '<span class="venta-tag venta-no">Posiblemente solo mayorista</span>',
+      incierto: '<span class="venta-tag venta-incierto">Venta al público sin confirmar</span>',
+    }[p.ventaPublico] || '';
     return `
     <div class="ticket" data-id="${p.id}">
       <div class="seal"><span class="km">${km.toFixed(1)}</span><span class="kmlabel">KM</span></div>
       <div class="ticket-body">
-        <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#9C6F1F'}"></span>${cat?.label || p.categoriaLabel}</div>
+        <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#9C6F1F'}"></span>${cat?.label || p.categoriaLabel}${etiquetaVenta}</div>
         <p class="ticket-nombre">${p.nombre}</p>
         <p class="ticket-dir">${p.direccion}</p>
         <div class="ticket-meta">
@@ -611,7 +629,7 @@ async function verificarProductores(bruto){
     .map(p => {
       const clas = clasificacion.get(p.id);
       const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
-      return { ...p, categoria: cat.id, categoriaLabel: cat.label };
+      return { ...p, categoria: cat.id, categoriaLabel: cat.label, ventaPublico: clas.ventaPublico || 'incierto' };
     });
 
   resultado.__ultimoError = ultimoError;
