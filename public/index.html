@@ -328,6 +328,75 @@
   .ticket-meta a{color:var(--pimenton-light);text-decoration:none;}
   .ticket-meta a:hover{text-decoration:underline;}
 
+  /* ---------- OFERTA Y RESERVA (estilo Too Good To Go) ---------- */
+  .oferta{
+    margin-top:12px;
+    padding:12px 14px;
+    background:var(--bg-raised);
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .oferta-info{min-width:0;}
+  .oferta-producto{
+    font-family:'DM Sans',sans-serif;
+    font-weight:500;
+    font-size:0.88rem;
+    margin:0 0 4px;
+  }
+  .oferta-precio{
+    font-family:'DM Mono',monospace;
+    font-size:0.85rem;
+  }
+  .oferta-precio .tachado{text-decoration:line-through;color:var(--cream-dim);margin-right:6px;}
+  .oferta-precio .final{color:var(--olive);font-weight:500;}
+  .oferta-franja{
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem;
+    color:var(--cream-dim);
+    margin-top:3px;
+  }
+  .btn-reservar{
+    background:var(--pimenton);
+    color:var(--paper);
+    border:none;
+    padding:9px 18px;
+    font-family:'DM Mono',monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    border-radius:var(--radius);
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .2s ease;
+  }
+  .btn-reservar:hover{background:var(--pimenton-light);}
+  .btn-reservar.reservado{
+    background:transparent;
+    border:1px solid var(--olive);
+    color:var(--olive);
+    cursor:default;
+  }
+  .reserva-confirmada{
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem;
+    color:var(--olive);
+    margin-top:6px;
+    width:100%;
+  }
+  .aviso-simulacion{
+    padding:10px 40px;
+    text-align:center;
+    font-family:'DM Mono',monospace;
+    font-size:0.72rem;
+    color:var(--cream-dim);
+    background:var(--bg-raised);
+    border-bottom:1px solid var(--line);
+  }
+
   /* ---------- ESTADOS ---------- */
   .estado{
     padding:60px 28px;
@@ -389,6 +458,8 @@
   <span>Mostrar también productores sin venta directa confirmada</span>
 </label>
 
+<div class="aviso-simulacion">Demo: las ofertas, precios y horarios de recogida son simulados — la reserva no realiza ningún pago real</div>
+
 <div class="cuerpo">
   <div id="map"></div>
   <div class="lista-wrap">
@@ -424,6 +495,49 @@ const CATEGORIAS = [
 
 let map, markers = [], currentCenter = null, currentResultados = [];
 let categoriasActivas = new Set(CATEGORIAS.map(c => c.id));
+
+// ---------- OFERTAS SIMULADAS (estilo Too Good To Go) ----------
+// IMPORTANTE: esto es una simulación para demo. No existe todavía un panel
+// real donde el productor publique lo que tiene disponible — eso es
+// justo lo que haría falta construir para que esto sea real. Mientras
+// tanto, generamos una oferta plausible por categoría, estable por
+// negocio (mismo id → misma oferta siempre, no cambia en cada render).
+const PLANTILLAS_OFERTA = {
+  aceite:    { productos:['Lote de aceite de oliva virgen extra 500ml','Pack degustación 3 variedades 250ml'], precioBase:[6,9] },
+  vino:      { productos:['Caja mixta de 3 botellas','Botella de temporada'], precioBase:[8,15] },
+  queso:     { productos:['Tabla de quesos variados 400g','Cuña de queso curado'], precioBase:[5,9] },
+  miel:      { productos:['Tarro de miel de flores 500g','Pack 2 tarros de temporada'], precioBase:[4,7] },
+  jamon:     { productos:['Sobre de loncheado ibérico 200g','Lote de embutidos variados'], precioBase:[6,12] },
+  conservas: { productos:['Lote de conservas del día','Pack 3 latas variadas'], precioBase:[5,8] },
+  pan:       { productos:['Bolsa de pan del día','Lote de bollería sobrante'], precioBase:[2,4] },
+  carne:     { productos:['Lote de carne fresca del día','Pack de hamburguesas artesanas'], precioBase:[6,10] },
+  huerta:    { productos:['Caja de fruta y verdura de temporada','Lote de verdura del día'], precioBase:[4,7] },
+};
+const FRANJAS_RECOGIDA = ['Hoy 18:00–20:00','Hoy 19:30–21:00','Mañana 9:00–11:00','Hoy 13:00–14:30'];
+
+function hashEstable(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function generarOferta(categoriaId, idNegocio){
+  const plantilla = PLANTILLAS_OFERTA[categoriaId] || PLANTILLAS_OFERTA.huerta;
+  const h = hashEstable(idNegocio);
+  const producto = plantilla.productos[h % plantilla.productos.length];
+  const [min, max] = plantilla.precioBase;
+  const precioOriginal = min + (h % 100) / 100 * (max - min);
+  const precioOferta = precioOriginal * 0.5;
+  const franja = FRANJAS_RECOGIDA[h % FRANJAS_RECOGIDA.length];
+  return {
+    producto,
+    precioOriginal: precioOriginal.toFixed(2),
+    precioOferta: precioOferta.toFixed(2),
+    franja,
+  };
+}
+
+const reservas = new Set();
 
 // ---------- CHIPS DE CATEGORÍA ----------
 function renderChips(conteos = {}){
@@ -551,6 +665,7 @@ function renderLista(resultados){
       no: '<span class="venta-tag venta-no">Posiblemente solo mayorista</span>',
       incierto: '<span class="venta-tag venta-incierto">Venta al público sin confirmar</span>',
     }[p.ventaPublico] || '';
+    const yaReservado = reservas.has(p.id);
     return `
     <div class="ticket" data-id="${p.id}">
       <div class="seal"><span class="km">${km.toFixed(1)}</span><span class="kmlabel">KM</span></div>
@@ -563,6 +678,15 @@ function renderLista(resultados){
           ${p.totalRatings ? `<span>${p.totalRatings} reseñas</span>` : ''}
           <a href="https://www.google.com/maps/place/?q=place_id:${p.id}" target="_blank" rel="noopener">Ver ficha ↗</a>
         </div>
+        <div class="oferta">
+          <div class="oferta-info">
+            <p class="oferta-producto">${p.oferta.producto}</p>
+            <div class="oferta-precio"><span class="tachado">${p.oferta.precioOriginal}€</span><span class="final">${p.oferta.precioOferta}€</span></div>
+            <div class="oferta-franja">Recogida: ${p.oferta.franja}</div>
+          </div>
+          <button class="btn-reservar ${yaReservado ? 'reservado' : ''}" data-reservar-id="${p.id}" ${yaReservado ? 'disabled' : ''}>${yaReservado ? '✓ Reservado' : 'Reservar'}</button>
+          ${yaReservado ? `<div class="reserva-confirmada">Reserva simulada confirmada · código ${p.id.slice(-5).toUpperCase()} · sin pago real</div>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -571,6 +695,14 @@ function renderLista(resultados){
     el.addEventListener('click', () => {
       const p = resultados.find(r => r.id === el.dataset.id);
       if (p) centrarEn(p);
+    });
+  });
+
+  lista.querySelectorAll('[data-reservar-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      reservas.add(btn.dataset.reservarId);
+      renderLista(resultados);
     });
   });
 }
@@ -656,7 +788,7 @@ async function verificarProductores(bruto){
     .map(p => {
       const clas = clasificacion.get(p.id);
       const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
-      return { ...p, categoria: cat.id, categoriaLabel: cat.label, ventaPublico: clas.ventaPublico || 'incierto' };
+      return { ...p, categoria: cat.id, categoriaLabel: cat.label, ventaPublico: clas.ventaPublico || 'incierto', oferta: generarOferta(cat.id, p.id) };
     });
 
   resultado.__ultimoError = ultimoError;
