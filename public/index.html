@@ -204,10 +204,20 @@
   }
 
   /* ---------- FILA DE CATEGORÍAS (iconos deslizables) ---------- */
+  .categoria-scroller-wrap{position:relative;}
+  .categoria-scroller-wrap::after{
+    content:'';
+    position:absolute;
+    top:0;right:0;bottom:8px;
+    width:28px;
+    background:linear-gradient(to right, transparent, var(--bg-raised));
+    pointer-events:none;
+  }
   .categoria-scroller{
     display:flex;
     gap:14px;
     overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
     padding:2px 2px 8px;
     scrollbar-width:none;
     -ms-overflow-style:none;
@@ -539,7 +549,9 @@
         </select>
         <button type="submit" id="btn-buscar">Buscar</button>
       </form>
-      <div class="categoria-scroller" id="categoria-scroller"></div>
+      <div class="categoria-scroller-wrap">
+        <div class="categoria-scroller" id="categoria-scroller"></div>
+      </div>
       <div class="filtros-acciones">
         <button type="button" class="pill-filtro" id="btn-abrir-filtros">Filtros</button>
         <select id="orden" class="pill-select">
