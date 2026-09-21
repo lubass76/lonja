@@ -43,7 +43,7 @@
   }
   /* Centra todo el contenido en pantallas anchas — evita que quede pegado
      a la izquierda con un hueco vacío a la derecha en monitores grandes. */
-  header, .hero, .search-panel, .categorias, .cuerpo, footer{
+  header, .hero, .search-panel, .filtros-bar, .cuerpo, footer{
     max-width:1440px;
     margin-left:auto;
     margin-right:auto;
@@ -162,55 +162,137 @@
   }
   @keyframes girar{ to{ transform:rotate(360deg); } }
 
-  /* ---------- CATEGORÍAS (chips) ---------- */
-  .categorias{
-    padding:24px 40px 8px;
+  /* ---------- FILA DE CATEGORÍAS (iconos deslizables) ---------- */
+  .filtros-bar{
+    max-width:1440px;
+    margin:0 auto;
+    padding:20px 40px 4px;
     display:flex;
-    flex-wrap:wrap;
-    gap:10px;
+    flex-direction:column;
+    gap:16px;
   }
-  .chip{
+  .categoria-scroller{
     display:flex;
+    gap:14px;
+    overflow-x:auto;
+    padding:2px 2px 8px;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .categoria-scroller::-webkit-scrollbar{display:none;}
+  .categoria-pill{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:8px;
-    border:1px solid var(--line);
-    border-radius:999px;
-    padding:8px 16px 8px 10px;
-    font-size:0.82rem;
-    color:var(--cream-dim);
+    gap:7px;
+    width:66px;
     cursor:pointer;
     user-select:none;
-    transition:all .15s ease;
-    background:transparent;
+    opacity:0.5;
+    transition:opacity .15s ease;
   }
-  .chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-  .chip.active{
-    color:var(--ink);
-    background:var(--cream);
-    border-color:var(--cream);
+  .categoria-pill.active{opacity:1;}
+  .categoria-pill .icono-wrap{
+    width:50px;height:50px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg-raised);
+    border:1.5px solid var(--line);
+    transition:border-color .15s ease;
   }
-  .chip:hover{border-color:var(--cream-dim);}
-  .chip .count{
+  .categoria-pill.active .icono-wrap{border-color:currentColor;}
+  .categoria-pill svg{width:22px;height:22px;fill:none;stroke-width:1.6;}
+  .categoria-pill span{
     font-family:'DM Mono',monospace;
-    font-size:0.7rem;
-    opacity:0.65;
+    font-size:0.66rem;
+    color:var(--cream-dim);
+    text-align:center;
+    white-space:nowrap;
   }
 
-  .toggle-venta{
+  /* ---------- ACCIONES DE FILTRO (pastillas) ---------- */
+  .filtros-acciones{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .pill-filtro, .pill-vista, .pill-select{
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--cream);
+    font-family:'DM Mono',monospace;
+    font-size:0.74rem;
+    padding:9px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    letter-spacing:0.02em;
+  }
+  .pill-filtro.activo{border-color:var(--pimenton);color:var(--pimenton-light);}
+  .pill-select{appearance:none;-webkit-appearance:none;padding-right:28px;background-repeat:no-repeat;background-position:right 12px center;background-size:9px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B5D48' stroke-width='1.4' fill='none'/%3E%3C/svg%3E");}
+  .pill-select option{background:var(--bg-raised);color:var(--cream);}
+  .pill-vista{display:none;}
+  @media (max-width:920px){
+    .pill-vista{display:inline-block;}
+  }
+
+  /* ---------- HOJA INFERIOR DE FILTROS ---------- */
+  .sheet-backdrop{
+    position:fixed;inset:0;
+    background:rgba(20,15,10,0.45);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+    z-index:40;
+  }
+  .sheet-backdrop.visible{opacity:1;pointer-events:auto;}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;
+    max-width:600px;
+    margin:0 auto;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-bottom:none;
+    border-radius:18px 18px 0 0;
+    padding:26px 26px calc(26px + env(safe-area-inset-bottom,0px));
+    transform:translateY(100%);
+    transition:transform .25s ease;
+    z-index:41;
+    box-shadow:0 -8px 30px rgba(20,15,10,0.12);
+  }
+  .sheet.visible{transform:translateY(0);}
+  .sheet-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .sheet-header h3{font-family:'Fraunces',serif;font-size:1.3rem;margin:0;color:var(--cream);font-weight:500;}
+  .sheet-cerrar{background:none;border:none;color:var(--cream-dim);font-size:1.2rem;cursor:pointer;line-height:1;padding:4px;}
+  .sheet-toggle{
     display:flex;
     align-items:center;
-    gap:8px;
-    padding:4px 40px 20px;
-    font-family:'DM Mono',monospace;
-    font-size:0.75rem;
-    color:var(--cream-dim);
+    gap:11px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.92rem;
+    color:var(--cream);
     cursor:pointer;
-    user-select:none;
-    max-width:1440px;
-    margin-left:auto;
-    margin-right:auto;
+    padding:10px 0;
   }
-  .toggle-venta input{accent-color:var(--pimenton);width:15px;height:15px;cursor:pointer;}
+  .sheet-toggle input{accent-color:var(--pimenton);width:17px;height:17px;cursor:pointer;flex-shrink:0;}
+  .sheet-botones{display:flex;gap:12px;margin-top:22px;}
+  .btn-borrar, .btn-aplicar{
+    flex:1;
+    padding:13px;
+    border-radius:var(--radius);
+    font-family:'DM Mono',monospace;
+    font-size:0.76rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .btn-borrar{background:transparent;color:var(--cream);border:1px solid var(--line);}
+  .btn-aplicar{background:var(--pimenton);color:var(--paper);border:none;}
+  .btn-aplicar:hover{background:var(--pimenton-light);}
 
   /* ---------- CUERPO: MAPA + LISTA ---------- */
   .cuerpo{
@@ -222,6 +304,8 @@
   }
   @media (max-width:920px){
     .cuerpo{grid-template-columns:1fr;}
+    .cuerpo.vista-lista #map{display:none;}
+    .cuerpo.vista-mapa .lista-wrap{display:none;}
   }
   #map{
     width:100%;
@@ -252,34 +336,61 @@
   .lista{
     overflow-y:auto;
     flex:1;
+    padding-top:20px;
   }
 
   /* ---------- TARJETA / TICKET ---------- */
   .ticket{
-    display:flex;
-    gap:16px;
-    padding:20px 28px;
+    display:block;
+    padding:0 0 20px;
+    margin:0 20px 20px;
     border-bottom:1px solid var(--line);
     cursor:pointer;
-    transition:background .15s ease;
+    transition:opacity .15s ease;
     position:relative;
   }
-  .ticket:hover{background:var(--bg-raised);}
-  .ticket.destacado{background:var(--bg-raised);}
-  .seal{
-    flex-shrink:0;
-    width:52px;height:52px;
-    border-radius:50%;
-    border:1px dashed var(--gold);
-    display:flex;flex-direction:column;
-    align-items:center;justify-content:center;
-    transform:rotate(-6deg);
-    font-family:'DM Mono',monospace;
-    color:var(--gold);
+  .ticket:hover{opacity:0.88;}
+  .ticket-foto-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:2.2/1;
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--bg-raised);
+    margin-bottom:12px;
   }
-  .seal .km{font-size:0.95rem;font-weight:500;line-height:1;}
-  .seal .kmlabel{font-size:0.55rem;letter-spacing:0.05em;margin-top:2px;}
-  .ticket-body{flex:1;min-width:0;}
+  .ticket-foto-wrap img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .ticket-foto-placeholder{
+    width:100%;height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ticket-foto-placeholder svg{width:36px;height:36px;fill:none;stroke-width:1.4;opacity:0.5;}
+  .ticket-badge-cat{
+    position:absolute;top:10px;left:10px;
+    font-family:'DM Mono',monospace;
+    font-size:0.68rem;
+    padding:5px 12px;
+    border-radius:999px;
+    background:var(--bg);
+    color:var(--cream);
+    letter-spacing:0.02em;
+  }
+  .ticket-badge-km{
+    position:absolute;top:10px;right:10px;
+    font-family:'DM Mono',monospace;
+    font-size:0.68rem;
+    padding:5px 12px;
+    border-radius:999px;
+    background:var(--bg);
+    color:var(--cream);
+  }
+  .ticket-body{min-width:0;}
   .ticket-cat{
     font-family:'Fraunces',serif;
     font-style:italic;
@@ -327,75 +438,6 @@
   .ticket-meta .rating{color:var(--gold);}
   .ticket-meta a{color:var(--pimenton-light);text-decoration:none;}
   .ticket-meta a:hover{text-decoration:underline;}
-
-  /* ---------- OFERTA Y RESERVA (estilo Too Good To Go) ---------- */
-  .oferta{
-    margin-top:12px;
-    padding:12px 14px;
-    background:var(--bg-raised);
-    border-radius:6px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
-  }
-  .oferta-info{min-width:0;}
-  .oferta-producto{
-    font-family:'DM Sans',sans-serif;
-    font-weight:500;
-    font-size:0.88rem;
-    margin:0 0 4px;
-  }
-  .oferta-precio{
-    font-family:'DM Mono',monospace;
-    font-size:0.85rem;
-  }
-  .oferta-precio .tachado{text-decoration:line-through;color:var(--cream-dim);margin-right:6px;}
-  .oferta-precio .final{color:var(--olive);font-weight:500;}
-  .oferta-franja{
-    font-family:'DM Mono',monospace;
-    font-size:0.7rem;
-    color:var(--cream-dim);
-    margin-top:3px;
-  }
-  .btn-reservar{
-    background:var(--pimenton);
-    color:var(--paper);
-    border:none;
-    padding:9px 18px;
-    font-family:'DM Mono',monospace;
-    font-size:0.72rem;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    border-radius:var(--radius);
-    cursor:pointer;
-    flex-shrink:0;
-    transition:background .2s ease;
-  }
-  .btn-reservar:hover{background:var(--pimenton-light);}
-  .btn-reservar.reservado{
-    background:transparent;
-    border:1px solid var(--olive);
-    color:var(--olive);
-    cursor:default;
-  }
-  .reserva-confirmada{
-    font-family:'DM Mono',monospace;
-    font-size:0.7rem;
-    color:var(--olive);
-    margin-top:6px;
-    width:100%;
-  }
-  .aviso-simulacion{
-    padding:10px 40px;
-    text-align:center;
-    font-family:'DM Mono',monospace;
-    font-size:0.72rem;
-    color:var(--cream-dim);
-    background:var(--bg-raised);
-    border-bottom:1px solid var(--line);
-  }
 
   /* ---------- ESTADOS ---------- */
   .estado{
@@ -451,16 +493,35 @@
   </form>
 </section>
 
-<div class="categorias" id="categorias"></div>
+<div class="filtros-bar">
+  <div class="categoria-scroller" id="categoria-scroller"></div>
+  <div class="filtros-acciones">
+    <button type="button" class="pill-filtro" id="btn-abrir-filtros">Filtros</button>
+    <select id="orden" class="pill-select">
+      <option value="distancia">Ordenar: distancia</option>
+      <option value="valoracion">Ordenar: valoración</option>
+    </select>
+    <button type="button" class="pill-vista" id="btn-vista-toggle">Ver mapa</button>
+  </div>
+</div>
 
-<label class="toggle-venta">
-  <input type="checkbox" id="toggle-venta">
-  <span>Mostrar también productores sin venta directa confirmada</span>
-</label>
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="sheet-filtros">
+  <div class="sheet-header">
+    <h3>Filtros</h3>
+    <button type="button" class="sheet-cerrar" id="sheet-cerrar" aria-label="Cerrar">✕</button>
+  </div>
+  <label class="sheet-toggle">
+    <input type="checkbox" id="toggle-venta">
+    <span>Mostrar también productores sin venta directa confirmada</span>
+  </label>
+  <div class="sheet-botones">
+    <button type="button" class="btn-borrar" id="btn-borrar-filtros">Borrar filtros</button>
+    <button type="button" class="btn-aplicar" id="btn-aplicar-filtros">Aplicar</button>
+  </div>
+</div>
 
-<div class="aviso-simulacion">Demo: las ofertas, precios y horarios de recogida son simulados — la reserva no realiza ningún pago real</div>
-
-<div class="cuerpo">
+<div class="cuerpo vista-lista" id="cuerpo">
   <div id="map"></div>
   <div class="lista-wrap">
     <div class="lista-header" id="lista-header">
@@ -493,79 +554,94 @@ const CATEGORIAS = [
   { id:'huerta',    label:'Huerta',   color:'var(--cat-huerta)'   },
 ];
 
+// Icono de línea minimalista por categoría (sin emojis, coherente con el resto del sistema visual).
+const ICONOS_CATEGORIA = {
+  aceite:    '<path d="M12 3C12 3 6 10 6 14a6 6 0 0012 0c0-4-6-11-6-11z"/>',
+  vino:      '<path d="M8 3h8M9 3c0 4 .5 7 3 7s3-3 3-7M12 10v8M8.5 21h7"/>',
+  queso:     '<path d="M3 18l7-13 11 13H3z"/>',
+  miel:      '<path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/>',
+  jamon:     '<path d="M14 3c3 0 5 2 5 5 0 2-1 3-2 4l-6 6c-1 1-3 1-4 0s-1-3 0-4l6-6c1-1 1-3 1-5z"/><circle cx="7" cy="17" r="2.3"/>',
+  conservas: '<path d="M8 3h8v3H8z"/><rect x="6" y="6" width="12" height="15" rx="2"/>',
+  pan:       '<path d="M4 12c0-4 3-7 8-7s8 3 8 7v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6z"/><path d="M9 9.5v4M15 9.5v4"/>',
+  carne:     '<ellipse cx="11" cy="13" rx="7" ry="5"/><path d="M17 9c2-2 4-1 4 1s-2 2-3 1"/>',
+  huerta:    '<path d="M12 21s-7-4-7-11a7 7 0 0114 0c0 7-7 11-7 11z"/><path d="M12 10v11"/>',
+};
+
 let map, markers = [], currentCenter = null, currentResultados = [];
 let categoriasActivas = new Set(CATEGORIAS.map(c => c.id));
+let googleMapsKey = null;
+let vistaMovil = 'lista';
 
-// ---------- OFERTAS SIMULADAS (estilo Too Good To Go) ----------
-// IMPORTANTE: esto es una simulación para demo. No existe todavía un panel
-// real donde el productor publique lo que tiene disponible — eso es
-// justo lo que haría falta construir para que esto sea real. Mientras
-// tanto, generamos una oferta plausible por categoría, estable por
-// negocio (mismo id → misma oferta siempre, no cambia en cada render).
-const PLANTILLAS_OFERTA = {
-  aceite:    { productos:['Lote de aceite de oliva virgen extra 500ml','Pack degustación 3 variedades 250ml'], precioBase:[6,9] },
-  vino:      { productos:['Caja mixta de 3 botellas','Botella de temporada'], precioBase:[8,15] },
-  queso:     { productos:['Tabla de quesos variados 400g','Cuña de queso curado'], precioBase:[5,9] },
-  miel:      { productos:['Tarro de miel de flores 500g','Pack 2 tarros de temporada'], precioBase:[4,7] },
-  jamon:     { productos:['Sobre de loncheado ibérico 200g','Lote de embutidos variados'], precioBase:[6,12] },
-  conservas: { productos:['Lote de conservas del día','Pack 3 latas variadas'], precioBase:[5,8] },
-  pan:       { productos:['Bolsa de pan del día','Lote de bollería sobrante'], precioBase:[2,4] },
-  carne:     { productos:['Lote de carne fresca del día','Pack de hamburguesas artesanas'], precioBase:[6,10] },
-  huerta:    { productos:['Caja de fruta y verdura de temporada','Lote de verdura del día'], precioBase:[4,7] },
-};
-const FRANJAS_RECOGIDA = ['Hoy 18:00–20:00','Hoy 19:30–21:00','Mañana 9:00–11:00','Hoy 13:00–14:30'];
-
-function hashEstable(str){
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function generarOferta(categoriaId, idNegocio){
-  const plantilla = PLANTILLAS_OFERTA[categoriaId] || PLANTILLAS_OFERTA.huerta;
-  const h = hashEstable(idNegocio);
-  const producto = plantilla.productos[h % plantilla.productos.length];
-  const [min, max] = plantilla.precioBase;
-  const precioOriginal = min + (h % 100) / 100 * (max - min);
-  const precioOferta = precioOriginal * 0.5;
-  const franja = FRANJAS_RECOGIDA[h % FRANJAS_RECOGIDA.length];
-  return {
-    producto,
-    precioOriginal: precioOriginal.toFixed(2),
-    precioOferta: precioOferta.toFixed(2),
-    franja,
-  };
-}
-
-const reservas = new Set();
-
-// ---------- CHIPS DE CATEGORÍA ----------
-function renderChips(conteos = {}){
-  const wrap = document.getElementById('categorias');
+// ---------- FILA DE CATEGORÍAS (iconos deslizables, estilo TGTG) ----------
+function renderCategoriaScroller(){
+  const wrap = document.getElementById('categoria-scroller');
   wrap.innerHTML = CATEGORIAS.map(c => `
-    <div class="chip ${categoriasActivas.has(c.id) ? 'active' : ''}" data-cat="${c.id}">
-      <span class="dot" style="background:${c.color}"></span>
-      ${c.label}
-      ${conteos[c.id] !== undefined ? `<span class="count">${conteos[c.id]}</span>` : ''}
+    <div class="categoria-pill ${categoriasActivas.has(c.id) ? 'active' : ''}" data-cat="${c.id}" style="color:${c.color}">
+      <div class="icono-wrap"><svg viewBox="0 0 24 24" stroke="currentColor">${ICONOS_CATEGORIA[c.id]}</svg></div>
+      <span>${c.label}</span>
     </div>
   `).join('');
-  wrap.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const cat = chip.dataset.cat;
+  wrap.querySelectorAll('.categoria-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const cat = pill.dataset.cat;
       if (categoriasActivas.has(cat)) categoriasActivas.delete(cat);
       else categoriasActivas.add(cat);
-      chip.classList.toggle('active');
-      aplicarFiltro();
+      pill.classList.toggle('active');
+      if (currentResultados.length) aplicarFiltro();
     });
   });
 }
-renderChips();
+renderCategoriaScroller();
+
+// ---------- HOJA INFERIOR DE FILTROS ----------
+const sheetFiltros = document.getElementById('sheet-filtros');
+const sheetBackdrop = document.getElementById('sheet-backdrop');
+function abrirSheet(){
+  sheetFiltros.classList.add('visible');
+  sheetBackdrop.classList.add('visible');
+}
+function cerrarSheet(){
+  sheetFiltros.classList.remove('visible');
+  sheetBackdrop.classList.remove('visible');
+}
+document.getElementById('btn-abrir-filtros').addEventListener('click', abrirSheet);
+document.getElementById('sheet-cerrar').addEventListener('click', cerrarSheet);
+sheetBackdrop.addEventListener('click', cerrarSheet);
+document.getElementById('btn-aplicar-filtros').addEventListener('click', () => {
+  cerrarSheet();
+  actualizarPillFiltros();
+  if (currentResultados.length) aplicarFiltro();
+});
+document.getElementById('btn-borrar-filtros').addEventListener('click', () => {
+  document.getElementById('toggle-venta').checked = false;
+  actualizarPillFiltros();
+  if (currentResultados.length) aplicarFiltro();
+});
+function actualizarPillFiltros(){
+  const activo = document.getElementById('toggle-venta').checked;
+  document.getElementById('btn-abrir-filtros').classList.toggle('activo', activo);
+}
+
+// ---------- ALTERNAR MAPA / LISTA (móvil) ----------
+document.getElementById('btn-vista-toggle').addEventListener('click', () => {
+  vistaMovil = vistaMovil === 'lista' ? 'mapa' : 'lista';
+  const cuerpo = document.getElementById('cuerpo');
+  cuerpo.classList.toggle('vista-lista', vistaMovil === 'lista');
+  cuerpo.classList.toggle('vista-mapa', vistaMovil === 'mapa');
+  document.getElementById('btn-vista-toggle').textContent = vistaMovil === 'lista' ? 'Ver mapa' : 'Ver lista';
+});
+
+// ---------- ORDENAR ----------
+document.getElementById('orden').addEventListener('change', () => {
+  if (currentResultados.length) aplicarFiltro();
+});
 
 // ---------- CARGA DE GOOGLE MAPS ----------
 async function cargarGoogleMaps(){
   const r = await fetch('/api/maps-key');
   const { key } = await r.json();
   if (!key) throw new Error('No se recibió API key de /api/maps-key');
+  googleMapsKey = key;
   return new Promise((resolve, reject) => {
     window.__initLonjaMap = () => resolve();
     const script = document.createElement('script');
@@ -652,7 +728,7 @@ function renderLista(resultados){
     lista.innerHTML = `
       <div class="estado">
         <h3>Nada por aquí todavía</h3>
-        <p>No hemos encontrado productores con venta directa confirmada en estas categorías dentro del radio elegido. Prueba a ampliarlo, activar más categorías, o marcar «mostrar también productores sin venta directa confirmada» arriba.</p>
+        <p>No hemos encontrado productores con venta directa confirmada en estas categorías dentro del radio elegido. Prueba a ampliarlo, activar más categorías, o abrir «Filtros» y marcar «mostrar también productores sin venta directa confirmada».</p>
       </div>`;
     return;
   }
@@ -665,10 +741,17 @@ function renderLista(resultados){
       no: '<span class="venta-tag venta-no">Posiblemente solo mayorista</span>',
       incierto: '<span class="venta-tag venta-incierto">Venta al público sin confirmar</span>',
     }[p.ventaPublico] || '';
-    const yaReservado = reservas.has(p.id);
+    const ref = p.photos && p.photos[0];
+    const foto = ref && googleMapsKey
+      ? `<img src="https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${ref}&key=${googleMapsKey}" alt="${p.nombre}" loading="lazy">`
+      : `<div class="ticket-foto-placeholder" style="color:${cat?.color||'#9C6F1F'}"><svg viewBox="0 0 24 24" stroke="currentColor">${ICONOS_CATEGORIA[p.categoria]||''}</svg></div>`;
     return `
     <div class="ticket" data-id="${p.id}">
-      <div class="seal"><span class="km">${km.toFixed(1)}</span><span class="kmlabel">KM</span></div>
+      <div class="ticket-foto-wrap">
+        ${foto}
+        <span class="ticket-badge-cat">${cat?.label || p.categoriaLabel}</span>
+        <span class="ticket-badge-km">${km.toFixed(1)} km</span>
+      </div>
       <div class="ticket-body">
         <div class="ticket-cat"><span class="dot" style="background:${cat?.color||'#9C6F1F'}"></span>${cat?.label || p.categoriaLabel}${etiquetaVenta}</div>
         <p class="ticket-nombre">${p.nombre}</p>
@@ -677,15 +760,6 @@ function renderLista(resultados){
           ${p.rating ? `<span class="rating">★ ${p.rating.toFixed(1)}</span>` : `<span>Sin valoraciones</span>`}
           ${p.totalRatings ? `<span>${p.totalRatings} reseñas</span>` : ''}
           <a href="https://www.google.com/maps/place/?q=place_id:${p.id}" target="_blank" rel="noopener">Ver ficha ↗</a>
-        </div>
-        <div class="oferta">
-          <div class="oferta-info">
-            <p class="oferta-producto">${p.oferta.producto}</p>
-            <div class="oferta-precio"><span class="tachado">${p.oferta.precioOriginal}€</span><span class="final">${p.oferta.precioOferta}€</span></div>
-            <div class="oferta-franja">Recogida: ${p.oferta.franja}</div>
-          </div>
-          <button class="btn-reservar ${yaReservado ? 'reservado' : ''}" data-reservar-id="${p.id}" ${yaReservado ? 'disabled' : ''}>${yaReservado ? '✓ Reservado' : 'Reservar'}</button>
-          ${yaReservado ? `<div class="reserva-confirmada">Reserva simulada confirmada · código ${p.id.slice(-5).toUpperCase()} · sin pago real</div>` : ''}
         </div>
       </div>
     </div>`;
@@ -697,31 +771,22 @@ function renderLista(resultados){
       if (p) centrarEn(p);
     });
   });
-
-  lista.querySelectorAll('[data-reservar-id]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      reservas.add(btn.dataset.reservarId);
-      renderLista(resultados);
-    });
-  });
 }
 
 function aplicarFiltro(){
   const mostrarTodos = document.getElementById('toggle-venta').checked;
+  const orden = document.getElementById('orden').value;
   const filtrados = currentResultados.filter(p =>
     categoriasActivas.has(p.categoria) && (mostrarTodos || p.ventaPublico === 'si')
   );
   pintarMarcadores(filtrados);
   renderLista(filtrados.sort((a,b) => {
+    if (orden === 'valoracion') return (b.rating || 0) - (a.rating || 0);
     const da = distanciaKm(currentCenter.lat,currentCenter.lng,a.lat,a.lng);
     const db = distanciaKm(currentCenter.lat,currentCenter.lng,b.lat,b.lng);
     return da - db;
   }));
 }
-document.getElementById('toggle-venta').addEventListener('change', () => {
-  if (currentResultados.length) aplicarFiltro();
-});
 
 // ---------- VERIFICACIÓN DE ORIGEN ESPAÑOL ----------
 // Envía los resultados en lotes a /api/enrich-productores, que decide con IA
@@ -788,7 +853,7 @@ async function verificarProductores(bruto){
     .map(p => {
       const clas = clasificacion.get(p.id);
       const cat = CATEGORIAS.find(c => c.id === clas.categoria) || CATEGORIAS.find(c => c.id === p.categoria);
-      return { ...p, categoria: cat.id, categoriaLabel: cat.label, ventaPublico: clas.ventaPublico || 'incierto', oferta: generarOferta(cat.id, p.id) };
+      return { ...p, categoria: cat.id, categoriaLabel: cat.label, ventaPublico: clas.ventaPublico || 'incierto' };
     });
 
   resultado.__ultimoError = ultimoError;
@@ -863,9 +928,7 @@ document.getElementById('form-buscar').addEventListener('submit', async (e) => {
     if (!map) initMap(currentCenter);
     else { map.setCenter(currentCenter); map.setZoom(11); }
 
-    const conteos = {};
-    CATEGORIAS.forEach(c => conteos[c.id] = currentResultados.filter(p => p.categoria === c.id).length);
-    renderChips(conteos);
+    renderCategoriaScroller();
 
     document.getElementById('lista-titulo').textContent = `Cerca de ${localidad}${avisoFallback}`;
     aplicarFiltro();
