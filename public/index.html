@@ -33,9 +33,11 @@
     --cat-huerta:#4A6B3C;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden;}
   body{
     margin:0;
+    max-width:100%;
+    overflow-x:hidden;
     background:var(--bg);
     color:var(--cream);
     font-family:'DM Sans',sans-serif;
@@ -101,7 +103,7 @@
   }
 
   /* ---------- BUSCADOR FLOTANTE SOBRE EL MAPA ---------- */
-  .mapa-columna{position:relative;}
+  .mapa-columna{position:relative;min-width:0;}
   .buscador-flotante{
     position:absolute;
     top:16px;left:16px;right:16px;
@@ -114,6 +116,7 @@
     border-radius:18px;
     padding:14px 14px 10px;
     box-shadow:0 10px 30px rgba(20,15,10,0.22);
+    min-width:0;
   }
   @media (max-width:920px){
     .buscador-flotante{
@@ -130,6 +133,7 @@
     border:1px solid var(--line);
     border-radius:999px;
     padding:4px 6px 4px 16px;
+    min-width:0;
   }
   .buscador-pill svg{width:17px;height:17px;stroke:var(--cream-dim);fill:none;stroke-width:1.6;flex-shrink:0;}
   .buscador-pill input{
@@ -326,13 +330,13 @@
   /* ---------- CUERPO: MAPA + LISTA ---------- */
   .cuerpo{
     display:grid;
-    grid-template-columns:1.1fr 0.9fr;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);
     gap:0;
     min-height:560px;
     border-top:1px solid var(--line);
   }
   @media (max-width:920px){
-    .cuerpo{grid-template-columns:1fr;}
+    .cuerpo{grid-template-columns:minmax(0,1fr);}
     .cuerpo.vista-lista #map{display:none;}
     .cuerpo.vista-mapa .lista-wrap{display:none;}
   }
