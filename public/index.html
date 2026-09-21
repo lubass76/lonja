@@ -43,7 +43,7 @@
   }
   /* Centra todo el contenido en pantallas anchas — evita que quede pegado
      a la izquierda con un hueco vacío a la derecha en monitores grandes. */
-  header, .hero, .search-panel, .filtros-bar, .cuerpo, footer{
+  header, .hero, .cuerpo, footer{
     max-width:1440px;
     margin-left:auto;
     margin-right:auto;
@@ -76,7 +76,7 @@
 
   /* ---------- HERO ---------- */
   .hero{
-    padding:64px 40px 48px;
+    padding:64px 40px 40px;
   }
   .hero h1{
     font-family:'Fraunces',serif;
@@ -86,6 +86,7 @@
     margin:0 0 18px;
     letter-spacing:-0.01em;
   }
+  .hero h1.hero-centrado{text-align:center;}
   .hero h1 em{
     font-style:italic;
     color:var(--pimenton-light);
@@ -95,62 +96,85 @@
     color:var(--cream-dim);
     max-width:560px;
     line-height:1.6;
-    margin:0 0 40px;
+    margin:0 auto;
+    text-align:center;
   }
 
-  /* ---------- BUSCADOR ---------- */
-  .search-panel{
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
-    padding:28px 0;
+  /* ---------- BUSCADOR FLOTANTE SOBRE EL MAPA ---------- */
+  .mapa-columna{position:relative;}
+  .buscador-flotante{
+    position:absolute;
+    top:16px;left:16px;right:16px;
+    z-index:5;
     display:flex;
-    flex-wrap:wrap;
-    gap:28px;
-    align-items:flex-end;
+    flex-direction:column;
+    gap:12px;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:14px 14px 10px;
+    box-shadow:0 10px 30px rgba(20,15,10,0.22);
   }
-  .field{display:flex;flex-direction:column;gap:8px;}
-  .field label{
-    font-family:'DM Mono',monospace;
-    font-size:0.68rem;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--gold);
+  @media (max-width:920px){
+    .buscador-flotante{
+      position:static;
+      margin:16px 16px 0;
+      left:auto;right:auto;top:auto;
+    }
   }
-  .field input, .field select{
+  .buscador-pill{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px 6px 4px 16px;
+  }
+  .buscador-pill svg{width:17px;height:17px;stroke:var(--cream-dim);fill:none;stroke-width:1.6;flex-shrink:0;}
+  .buscador-pill input{
+    flex:1;
+    min-width:0;
     background:transparent;
     border:none;
-    border-bottom:1px solid var(--line);
-    color:var(--cream);
-    font-family:'Fraunces',serif;
-    font-size:1.3rem;
-    padding:6px 2px 10px;
-    min-width:220px;
     outline:none;
-    transition:border-color .2s ease;
+    color:var(--cream);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.92rem;
+    padding:11px 0;
   }
-  .field input::placeholder{color:var(--cream-dim);opacity:0.5;font-style:italic;}
-  .field input:focus, .field select:focus{border-color:var(--pimenton-light);}
-  .field select{font-family:'DM Mono',monospace;font-size:0.95rem;min-width:140px;}
-  .field select option{background:var(--bg-raised);color:var(--cream);}
-
-  .btn-buscar{
+  .buscador-pill input::placeholder{color:var(--cream-dim);}
+  .buscador-pill select{
+    background:transparent;
+    border:none;
+    border-left:1px solid var(--line);
+    color:var(--cream-dim);
+    font-family:'DM Mono',monospace;
+    font-size:0.76rem;
+    padding:8px 8px 8px 14px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .buscador-pill select option{background:var(--bg-raised);color:var(--cream);}
+  .buscador-pill button{
     background:var(--pimenton);
     color:var(--paper);
     border:none;
-    padding:14px 30px;
+    padding:11px 20px;
+    border-radius:999px;
     font-family:'DM Mono',monospace;
-    font-size:0.8rem;
-    letter-spacing:0.1em;
+    font-size:0.76rem;
+    letter-spacing:0.06em;
     text-transform:uppercase;
     cursor:pointer;
-    border-radius:var(--radius);
-    transition:background .2s ease, transform .15s ease;
-    height:fit-content;
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:background .2s ease;
   }
-  .btn-buscar:hover{background:var(--pimenton-light);}
-  .btn-buscar:active{transform:scale(0.98);}
-  .btn-buscar:disabled{opacity:0.75;cursor:wait;}
-  .btn-buscar{display:inline-flex;align-items:center;justify-content:center;gap:9px;}
+  .buscador-pill button:hover{background:var(--pimenton-light);}
+  .buscador-pill button:disabled{opacity:0.75;cursor:wait;}
   .spinner{
     display:inline-block;
     width:13px;height:13px;
@@ -161,16 +185,21 @@
     flex-shrink:0;
   }
   @keyframes girar{ to{ transform:rotate(360deg); } }
+  #map.map-vacio{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:100px 30px 30px;
+    font-family:'DM Mono',monospace;
+    font-size:0.8rem;
+    color:var(--cream-dim);
+  }
+  @media (max-width:920px){
+    #map.map-vacio{padding:30px;}
+  }
 
   /* ---------- FILA DE CATEGORÍAS (iconos deslizables) ---------- */
-  .filtros-bar{
-    max-width:1440px;
-    margin:0 auto;
-    padding:20px 40px 4px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-  }
   .categoria-scroller{
     display:flex;
     gap:14px;
@@ -472,38 +501,9 @@
 </header>
 
 <section class="hero">
-  <h1>Compra donde <em>nace</em>.</h1>
+  <h1 class="hero-centrado">Compra producto <em>español</em>.</h1>
   <p>Escribe tu localidad y encuentra a los productores de aceite, vino, queso, miel y más que tienes cerca — con nombre, origen y distancia real. Sin intermediarios, sin lineal de supermercado.</p>
-
-  <form id="form-buscar" class="search-panel">
-    <div class="field" style="flex:1;">
-      <label for="localidad">Localidad</label>
-      <input type="text" id="localidad" placeholder="Ej. Madrid" required>
-    </div>
-    <div class="field">
-      <label for="radio">Radio</label>
-      <select id="radio">
-        <option value="5000">5 km</option>
-        <option value="10000" selected>10 km</option>
-        <option value="20000">20 km</option>
-        <option value="40000">40 km</option>
-      </select>
-    </div>
-    <button type="submit" class="btn-buscar" id="btn-buscar">Buscar productores</button>
-  </form>
 </section>
-
-<div class="filtros-bar">
-  <div class="categoria-scroller" id="categoria-scroller"></div>
-  <div class="filtros-acciones">
-    <button type="button" class="pill-filtro" id="btn-abrir-filtros">Filtros</button>
-    <select id="orden" class="pill-select">
-      <option value="distancia">Ordenar: distancia</option>
-      <option value="valoracion">Ordenar: valoración</option>
-    </select>
-    <button type="button" class="pill-vista" id="btn-vista-toggle">Ver mapa</button>
-  </div>
-</div>
 
 <div class="sheet-backdrop" id="sheet-backdrop"></div>
 <div class="sheet" id="sheet-filtros">
@@ -522,7 +522,31 @@
 </div>
 
 <div class="cuerpo vista-lista" id="cuerpo">
-  <div id="map"></div>
+  <div class="mapa-columna">
+    <div class="buscador-flotante">
+      <form id="form-buscar" class="buscador-pill">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="localidad" placeholder="Ej. Madrid" required>
+        <select id="radio">
+          <option value="5000">5 km</option>
+          <option value="10000" selected>10 km</option>
+          <option value="20000">20 km</option>
+          <option value="40000">40 km</option>
+        </select>
+        <button type="submit" id="btn-buscar">Buscar</button>
+      </form>
+      <div class="categoria-scroller" id="categoria-scroller"></div>
+      <div class="filtros-acciones">
+        <button type="button" class="pill-filtro" id="btn-abrir-filtros">Filtros</button>
+        <select id="orden" class="pill-select">
+          <option value="distancia">Ordenar: distancia</option>
+          <option value="valoracion">Ordenar: valoración</option>
+        </select>
+        <button type="button" class="pill-vista" id="btn-vista-toggle">Ver mapa</button>
+      </div>
+    </div>
+    <div id="map" class="map-vacio">Escribe una localidad y pulsa «Buscar» para ver aquí el mapa.</div>
+  </div>
   <div class="lista-wrap">
     <div class="lista-header" id="lista-header">
       <span id="lista-titulo">Resultados</span>
@@ -531,7 +555,7 @@
     <div class="lista" id="lista">
       <div class="estado">
         <h3>Aún no hay búsqueda</h3>
-        <p>Escribe una localidad arriba y pulsa «Buscar productores» para ver el mapa de esa zona.</p>
+        <p>Escribe una localidad arriba y pulsa «Buscar» para ver el mapa de esa zona.</p>
       </div>
     </div>
   </div>
@@ -663,7 +687,10 @@ const MAP_STYLE = [
 ];
 
 function initMap(center){
-  map = new google.maps.Map(document.getElementById('map'), {
+  const el = document.getElementById('map');
+  el.classList.remove('map-vacio');
+  el.innerHTML = '';
+  map = new google.maps.Map(el, {
     center, zoom: 11,
     styles: MAP_STYLE,
     disableDefaultUI: true,
